@@ -1,5 +1,7 @@
 import { config } from 'dotenv';
 import express from 'express';
+import mongoose from 'mongoose';
+import authRoute from './routes/auth.js';
 
 config();
 const app = express();
@@ -7,20 +9,21 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.get('/', (req, res) => {
+app.get('/api', (req, res) => {
   res.send('Mum look I can hack!!!');
 });
 
-app.post('/name', (req, res) => {
-  if (req.body.name) {
-    return res.json({ name: req.body.name });
-  } else {
-    return res.status(400).json({ error: 'No name provided' });
-  }
-});
+app.use('/api/auth', authRoute);
 
-console.log('process.env.PORT', process.env.PORT);
+mongoose
+  .connect(process.env.MONGO_URI)
+  .then(() => {
+    console.log('Connected to database...');
 
-app.listen(process.env.PORT, () => {
-  console.log(`Server running on ${process.env.PORT}`);
-});
+    app.listen(process.env.PORT, () => {
+      console.log(`Server running on ${process.env.PORT}`);
+    });
+  })
+  .catch((err) => {
+    console.log(err);
+  });
